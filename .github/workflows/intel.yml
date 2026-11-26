@@ -27,6 +27,28 @@ jobs:
           grep -n 'x86_64-apple-macosx14.0' build.sh
           chmod +x build.sh Tests/*.sh Tools/*.sh
 
+      - name: Hafif varsayılan özellikler
+        run: |
+          python3 - <<'PY'
+          p = 'Sources/Vorssaint/Core/FeatureCatalog.swift'
+          s = open(p, encoding='utf-8').read()
+          old = "    var installedByDefault: Bool {\n        switch self {"
+          assert old in s
+          new = ("    var installedByDefault: Bool {\n"
+                 "        switch self {\n"
+                 "        case .switcher, .clipboardHistory, .pastePlain, .keepAwake, .commandBar, .micMute,\n"
+                 "             .screenshot, .cameraPreview, .windowMaximizer, .windowLayout:\n"
+                 "            return true\n"
+                 "        default:\n"
+                 "            return false\n"
+                 "        }\n"
+                 "    }\n\n"
+                 "    var originalInstalledByDefault: Bool {\n"
+                 "        switch self {")
+          open(p, 'w', encoding='utf-8').write(s.replace(old, new, 1))
+          PY
+          grep -n 'originalInstalledByDefault' Sources/Vorssaint/Core/FeatureCatalog.swift
+
       - name: Derle
         run: ./build.sh
 
